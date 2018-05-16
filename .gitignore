@@ -33,3 +33,5 @@
 
 # IDE files
 /.vs/*
+/x64/*
+/CppProject/x64/*
