@@ -7,7 +7,7 @@
 #include <iostream>
 #include <map>
 #include <QKeyEvent>
-
+#include "SimThread.h"
 class mainWindow : public QMainWindow
 {
 	Q_OBJECT
