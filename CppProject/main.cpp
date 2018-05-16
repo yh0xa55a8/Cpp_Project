@@ -6,10 +6,9 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 	mainWindow w;
 	w.show();
-	std::u16string filePath;
 	QEventLoop fileLoop;
-	QObject::connect(&w, SIGNAL(fileOpened()), &fileLoop, SLOT(quit()));
-	fileLoop.exec();
-	filePath = w.getFilePath().toStdU16String();
+	QObject::connect(&w, SIGNAL(fileOpened(QString)), &fileLoop, SLOT(quit()));
+	//QObject::connect(&w, SIGNAL(fileOpened(Qstring)), &thread1, SLOT(openfile(QString)));此处未来连接到模拟器循环所在线程处理文件打开
+	fileLoop.exec();	
 	return a.exec();
 }

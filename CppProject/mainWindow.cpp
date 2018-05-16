@@ -6,6 +6,7 @@ mainWindow::mainWindow(QWidget *parent)
 	ui.setupUi(this);
 	QObject::connect(ui.actionExit, &QAction::triggered, &QApplication::quit);
 	QObject::connect(ui.actionOpen, &QAction::triggered, this, &mainWindow::openFile);
+	keyStatus[Qt::Key_Up] = false;
 	QImage image{ 160, 144, QImage::Format_RGB16 };
 	image.fill(Qt::black);
 	this->flashImage(image);
@@ -19,8 +20,17 @@ void mainWindow::flashImage(const QImage &image) {
 //使用Qimage为参数更新窗口中的图像
 
 void mainWindow::openFile() {
-	this->filePath = QFileDialog::getOpenFileName(this, tr("open file"), "/", tr("GB ROM file(*.gb)"));
-	emit fileOpened();
+	emit fileOpened(QFileDialog::getOpenFileName(this, tr("open file"), "/", tr("GB ROM file(*.gb)")));
 }
-//调用框架自带的QFileDialog选取文件并将文件路径保存在filePath,同时发送fileOpend信号
+//调用框架自带的QFileDialog选取文件同时发送fileOpend信号
 
+void mainWindow::keyPressEvent(QKeyEvent *k)
+{
+	keyStatus[static_cast<Qt::Key>(k->key())] = true;
+}
+
+void mainWindow::keyReleaseEvent(QKeyEvent *k)
+{
+	keyStatus[static_cast<Qt::Key>(k->key())] = false;
+}
+//处理键盘按下/释放事件

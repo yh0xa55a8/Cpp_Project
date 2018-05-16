@@ -5,20 +5,22 @@
 #include <QString>
 #include <QFileDialog>
 #include <iostream>
+#include <map>
+#include <QKeyEvent>
 
 class mainWindow : public QMainWindow
 {
 	Q_OBJECT
 public:
 	mainWindow(QWidget *parent = Q_NULLPTR);
-	void flashImage(const QImage &);
 	void openFile();
-	//virtual void keyPressEvent(QKeyEvent *);
-	QString getFilePath() { return filePath; }
-private:
-	QString filePath;
-	QLabel surface;
-	Ui::mainWindowClass ui;
+	void keyPressEvent(QKeyEvent *);
+	void keyReleaseEvent(QKeyEvent *);
 signals:
-	void fileOpened();
+	void fileOpened(QString);
+public slots:
+	void flashImage(const QImage &);
+private:
+	std::map<Qt::Key, bool> keyStatus;
+	Ui::mainWindowClass ui;
 };
