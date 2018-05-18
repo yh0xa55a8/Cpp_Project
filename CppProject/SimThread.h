@@ -5,12 +5,9 @@
 class SimThread:public QThread
 {
 public:
-	SimThread();
 	~SimThread();
 	void run();
 	Storage & getSto() { return simSto; }
-public slots:
-	void appClosing();
 private:
 	Storage simSto;
 };

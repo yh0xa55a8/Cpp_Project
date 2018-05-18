@@ -14,12 +14,17 @@ class mainWindow : public QMainWindow
 	Q_OBJECT
 public:
 	mainWindow(QWidget *parent = Q_NULLPTR);
-	void openFile();
+
 signals:
-	void fileOpened(QString); 
+	void fileOpened(QString);
+signals:
+	void romClosed();
 public slots:
 	void flashImage(const QImage &);
 private:
+	void openFile();
+	void closeRom();
+	void showAbout() { QMessageBox::about(nullptr, "GameBoy Simulator", "An OOP course project.\nProgrammed by 1752704 and 1752086\n"); }
 	std::map<Qt::Key, bool> keyStatus;
 	Ui::mainWindowClass ui;
 	void keyPressEvent(QKeyEvent *);

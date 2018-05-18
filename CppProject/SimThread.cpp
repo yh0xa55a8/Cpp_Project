@@ -1,11 +1,6 @@
 #include "SimThread.h"
 
 
-
-SimThread::SimThread()
-{
-}
-
 SimThread::~SimThread()
 {
 	requestInterruption();

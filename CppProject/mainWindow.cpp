@@ -6,6 +6,8 @@ mainWindow::mainWindow(QWidget *parent)
 	ui.setupUi(this);
 	QObject::connect(ui.actionExit, &QAction::triggered, &QApplication::quit);
 	QObject::connect(ui.actionOpen, &QAction::triggered, this, &mainWindow::openFile);
+	QObject::connect(ui.actionClose, &QAction::triggered, this, &mainWindow::closeRom);
+	QObject::connect(ui.actionAbout, &QAction::triggered, this,&mainWindow::showAbout);
 	QImage image{ 160, 144, QImage::Format_RGB16 };
 	image.fill(Qt::black);
 	this->flashImage(image);
@@ -25,6 +27,13 @@ void mainWindow::openFile() {
 	}//避免用户点击取消后报错
 }
 //调用框架自带的QFileDialog选取文件同时发送fileOpend信号
+
+void mainWindow::closeRom() {
+	QImage image{ 160, 144, QImage::Format_RGB16 };
+	image.fill(Qt::black);
+	this->flashImage(image);
+	emit romClosed();
+}
 
 void mainWindow::keyPressEvent(QKeyEvent *k)
 {
