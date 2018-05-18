@@ -6,9 +6,17 @@ SimThread::SimThread()
 {
 }
 
+SimThread::~SimThread()
+{
+	requestInterruption();
+	quit();
+	wait();
+}
+
 void SimThread::run()
 {
-	while (1) {
+	CPU simCPU(simSto);
+	while (!isInterruptionRequested()) {
 
 	}
 }

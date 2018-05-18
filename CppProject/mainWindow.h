@@ -7,6 +7,7 @@
 #include <iostream>
 #include <map>
 #include <QKeyEvent>
+#include <QCloseEvent>
 #include "SimThread.h"
 class mainWindow : public QMainWindow
 {
@@ -14,13 +15,13 @@ class mainWindow : public QMainWindow
 public:
 	mainWindow(QWidget *parent = Q_NULLPTR);
 	void openFile();
-	void keyPressEvent(QKeyEvent *);
-	void keyReleaseEvent(QKeyEvent *);
 signals:
-	void fileOpened(QString);
+	void fileOpened(QString); 
 public slots:
 	void flashImage(const QImage &);
 private:
 	std::map<Qt::Key, bool> keyStatus;
 	Ui::mainWindowClass ui;
+	void keyPressEvent(QKeyEvent *);
+	void keyReleaseEvent(QKeyEvent *);
 };
