@@ -113,6 +113,7 @@
     </QtRcc>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CPU.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mainWindow.cpp" />
     <ClCompile Include="SimThread.cpp" />
@@ -128,6 +129,7 @@
     <QtRcc Include="mainWindow.qrc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CPU.h" />
     <ClInclude Include="macros.h" />
     <ClInclude Include="SimThread.h" />
     <QtMoc Include="Storage.h">

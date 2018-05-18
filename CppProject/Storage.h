@@ -12,7 +12,7 @@ class Storage:public QObject
 	Q_OBJECT
 public:
 	Storage();
-	const byte & readByte(const doubleByte& address) { return storage[address]; };
+	const byte & readByte(const doubleByte address) { return storage[address]; };
 	void writeByte(const doubleByte& address, byte info) { storage[address] = info; }
 public slots:
 	void getRom(QString);
