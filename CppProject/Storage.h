@@ -21,5 +21,6 @@ public slots:
 	void getRom(QString);
 private:
 	std::array<byte, 0x10000> storage;
+	
 };
 

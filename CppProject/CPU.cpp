@@ -169,7 +169,7 @@ void CPU::loadOpcode()
 	opcode[0x84] = [&]()->int {ADD(byteRegs[H]); return 4; };
 	opcode[0x85] = [&]()->int {ADD(byteRegs[L]); return 4; };
 	opcode[0x86] = [&]()->int {ADD(readByte_(doubleRegAddr(H, L))); return 8; };
-	opcode[0xC6] = [&]()->int {ADD(readByte_(regPC++)); };
+	opcode[0xC6] = [&]()->int {ADD(readByte_(regPC++)); return 8; };
 
 	//ADC A,n
 	opcode[0x8F] = [&]()->int {ADC(byteRegs[A]); return 4; };
@@ -267,4 +267,176 @@ void CPU::loadOpcode()
 	opcode[0x25] = [&]()->int {byteRegs[H] = DEC(byteRegs[H]); return 4; };
 	opcode[0x2D] = [&]()->int {byteRegs[L] = DEC(byteRegs[L]); return 4; };
 	opcode[0x35] = [&]()->int {writeByte_(doubleRegAddr(H, L), DEC(readByte_(doubleRegAddr(H, L)))); return 12; };
+
+	//16-bit calculation
+	//ADD HL,n
+	opcode[0x09] = [&]()->int {ADD(doubleReg(B, C)); return 8; };
+	opcode[0x19] = [&]()->int {ADD(doubleReg(D, E)); return 8; };
+	opcode[0x29] = [&]()->int {ADD(doubleReg(H, L)); return 8; };
+	opcode[0x39] = [&]()->int {ADD(regSP); return 8; };
+
+	//ADD SP,n
+	opcode[0xE8] = [&]()->int {byte&& tmp = readByte_(regPC++); ADD(reinterpret_cast<signedByte&>(tmp)); return 16; };
+
+	//INC nn
+	opcode[0x03] = [&]()->int {if (++byteRegs[C] == 0)byteRegs[B]++; return 8; };
+	opcode[0x13] = [&]()->int {if (++byteRegs[E] == 0)byteRegs[D]++; return 8; };
+	opcode[0x23] = [&]()->int {if (++byteRegs[L] == 0)byteRegs[H]++; return 8; };
+	opcode[0x33] = [&]()->int {regSP++; return 8; };
+
+	//DEC nn
+	opcode[0x0B] = [&]()->int {if (--byteRegs[C] == 0xFF)byteRegs[B]--; return 8; };
+	opcode[0x1B] = [&]()->int {if (--byteRegs[E] == 0xFF)byteRegs[D]--; return 8; };
+	opcode[0x2B] = [&]()->int {if (--byteRegs[L] == 0xFF)byteRegs[H]--; return 8; };
+	opcode[0x3B] = [&]()->int {regSP--; return 8; };
+
+	//Miscellaneous
+
+	//DAA留待日后实现 opcode 0x27
+
+	//SWAP n
+	CBopcode[0x37] = [&]()->int {byteRegs[A] = (byteRegs[A] >> 4) + (byteRegs[A] << 4); setFlag(FZ, !byteRegs[A]); setFlag(FN, false); setFlag(FH, false); setFlag(FC, false); return 8; };
+	CBopcode[0x30] = [&]()->int {byteRegs[B] = (byteRegs[B] >> 4) + (byteRegs[B] << 4); setFlag(FZ, !byteRegs[B]); setFlag(FN, false); setFlag(FH, false); setFlag(FC, false); return 8; };
+	CBopcode[0x31] = [&]()->int {byteRegs[C] = (byteRegs[C] >> 4) + (byteRegs[C] << 4); setFlag(FZ, !byteRegs[C]); setFlag(FN, false); setFlag(FH, false); setFlag(FC, false); return 8; };
+	CBopcode[0x32] = [&]()->int {byteRegs[D] = (byteRegs[D] >> 4) + (byteRegs[D] << 4); setFlag(FZ, !byteRegs[D]); setFlag(FN, false); setFlag(FH, false); setFlag(FC, false); return 8; };
+	CBopcode[0x33] = [&]()->int {byteRegs[E] = (byteRegs[E] >> 4) + (byteRegs[E] << 4); setFlag(FZ, !byteRegs[E]); setFlag(FN, false); setFlag(FH, false); setFlag(FC, false); return 8; };
+	CBopcode[0x34] = [&]()->int {byteRegs[H] = (byteRegs[H] >> 4) + (byteRegs[H] << 4); setFlag(FZ, !byteRegs[H]); setFlag(FN, false); setFlag(FH, false); setFlag(FC, false); return 8; };
+	CBopcode[0x35] = [&]()->int {byteRegs[L] = (byteRegs[L] >> 4) + (byteRegs[L] << 4); setFlag(FZ, !byteRegs[L]); setFlag(FN, false); setFlag(FH, false); setFlag(FC, false); return 8; };
+	CBopcode[0x36] = [&]()->int {byte tmp = readByte_(doubleRegAddr(H, L)); tmp = (tmp >> 4) + (tmp << 4); writeByte_(doubleRegAddr(H, L), tmp); setFlag(FZ, !tmp); setFlag(FN, false); setFlag(FH, false); setFlag(FC, false); return 16; };
+
+	//CPL
+	opcode[0x2F] = [&]()->int {byteRegs[A] = ~byteRegs[A]; setFlag(FN, true); setFlag(FH, true); return 4; };
+
+	//CCL
+	opcode[0x3F] = [&]()->int {setFlag(FC, !getFlag(FC)); setFlag(FN, false); setFlag(FH, false); return 4; };
+
+	//SCF
+	opcode[0x37] = [&]()->int {setFlag(FC, true); setFlag(FN, false); setFlag(FH, false); return 4; };
+
+	//NOP
+	opcode[0x00] = [&]()->int {return 4; };
+
+	//HALT
+	opcode[0x76] = [&]()->int {haltFlag = true; return 4; };
+
+	//STOP
+	opcode[0x10] = [&]()->int {regPC++; stopFlag = true; return 4; };
+
+	//DI and EI
+	opcode[0xF3] = [&]()->int {interruptSwitched = true; return 4; };
+	opcode[0xFB] = [&]()->int {interruptSwitched = true; return 4; };
+
+	//scrolls and shifts
+	//RLCA
+	opcode[0x07] = [&]()->int {byteRegs[A] = RLC(byteRegs[A]); return 4; };
+
+	//RLA
+	opcode[0x17] = [&]()->int {byteRegs[A] = RL(byteRegs[A]); return 4;  };
+
+	//RRCA
+	opcode[0x0F] = [&]()->int {byteRegs[A] = RRC(byteRegs[A]); return 4; };
+
+	//RRA
+	opcode[0x1F] = [&]()->int {byteRegs[A] = RR(byteRegs[A]); return 4; };
+
+	//RLC n
+	CBopcode[0x07] = [&]()->int {byteRegs[A] = RLC(byteRegs[A]); return 8; };
+	CBopcode[0x00] = [&]()->int {byteRegs[B] = RLC(byteRegs[B]); return 8; };
+	CBopcode[0x01] = [&]()->int {byteRegs[C] = RLC(byteRegs[C]); return 8; };
+	CBopcode[0x02] = [&]()->int {byteRegs[D] = RLC(byteRegs[D]); return 8; };
+	CBopcode[0x03] = [&]()->int {byteRegs[E] = RLC(byteRegs[E]); return 8; };
+	CBopcode[0x04] = [&]()->int {byteRegs[H] = RLC(byteRegs[H]); return 8; };
+	CBopcode[0x05] = [&]()->int {byteRegs[L] = RLC(byteRegs[L]); return 8; };
+	CBopcode[0x06] = [&]()->int {writeByte_(doubleRegAddr(H,L),RLC(readByte_(doubleRegAddr(H,L)))); return 16; };
+
+	//RL n
+	CBopcode[0x17] = [&]()->int {byteRegs[A] = RL(byteRegs[A]); return 8; };
+	CBopcode[0x10] = [&]()->int {byteRegs[B] = RL(byteRegs[B]); return 8; };
+	CBopcode[0x11] = [&]()->int {byteRegs[C] = RL(byteRegs[C]); return 8; };
+	CBopcode[0x12] = [&]()->int {byteRegs[D] = RL(byteRegs[D]); return 8; };
+	CBopcode[0x13] = [&]()->int {byteRegs[E] = RL(byteRegs[E]); return 8; };
+	CBopcode[0x14] = [&]()->int {byteRegs[H] = RL(byteRegs[H]); return 8; };
+	CBopcode[0x15] = [&]()->int {byteRegs[L] = RL(byteRegs[L]); return 8; };
+	CBopcode[0x16] = [&]()->int {writeByte_(doubleRegAddr(H, L), RL(readByte_(doubleRegAddr(H, L)))); return 16; };
+
+	//RRC n
+	CBopcode[0x0F] = [&]()->int {byteRegs[A] = RRC(byteRegs[A]); return 8; };
+	CBopcode[0x08] = [&]()->int {byteRegs[B] = RRC(byteRegs[B]); return 8; };
+	CBopcode[0x09] = [&]()->int {byteRegs[C] = RRC(byteRegs[C]); return 8; };
+	CBopcode[0x0A] = [&]()->int {byteRegs[D] = RRC(byteRegs[D]); return 8; };
+	CBopcode[0x0B] = [&]()->int {byteRegs[E] = RRC(byteRegs[E]); return 8; };
+	CBopcode[0x0C] = [&]()->int {byteRegs[H] = RRC(byteRegs[H]); return 8; };
+	CBopcode[0x0D] = [&]()->int {byteRegs[L] = RRC(byteRegs[L]); return 8; };
+	CBopcode[0x0E] = [&]()->int {writeByte_(doubleRegAddr(H, L), RRC(readByte_(doubleRegAddr(H, L)))); return 16; };
+
+	//RR n
+	CBopcode[0x1F] = [&]()->int {byteRegs[A] = RR(byteRegs[A]); return 8; };
+	CBopcode[0x18] = [&]()->int {byteRegs[B] = RR(byteRegs[B]); return 8; };
+	CBopcode[0x19] = [&]()->int {byteRegs[C] = RR(byteRegs[C]); return 8; };
+	CBopcode[0x1A] = [&]()->int {byteRegs[D] = RR(byteRegs[D]); return 8; };
+	CBopcode[0x1B] = [&]()->int {byteRegs[E] = RR(byteRegs[E]); return 8; };
+	CBopcode[0x1C] = [&]()->int {byteRegs[H] = RR(byteRegs[H]); return 8; };
+	CBopcode[0x1D] = [&]()->int {byteRegs[L] = RR(byteRegs[L]); return 8; };
+	CBopcode[0x1E] = [&]()->int {writeByte_(doubleRegAddr(H, L), RR(readByte_(doubleRegAddr(H, L)))); return 16; };
+
+
+
+	//jump
+	//JP nn
+	opcode[0xC3] = [&]()->int {regPC = readDouble_(regPC); return 12; };
+
+	//JP cc,nn
+	opcode[0xC2] = [&]()->int {if (!getFlag(FZ))opcode[0xC3](); else regPC+=2; return 12; };
+	opcode[0xCA] = [&]()->int {if (getFlag(FZ))opcode[0xC3](); else regPC+= 2; return 12; };
+	opcode[0xD2] = [&]()->int {if (!getFlag(FC))opcode[0xC3](); else regPC+= 2; return 12; };
+	opcode[0xDA] = [&]()->int {if (getFlag(FC))opcode[0xC3](); else regPC+= 2; return 12; };
+
+	//JP (HL)
+	opcode[0xE9] = [&]()->int {regPC = doubleRegAddr(H, L); return 4; };
+
+	//JR n
+	opcode[0x18] = [&]()->int {byte&& tmp = readByte_(regPC++); regPC += reinterpret_cast<signedByte&>(tmp); return 8; };
+
+	//JR cc,n
+	opcode[0x20] = [&]()->int {if (!getFlag(FZ))opcode[0x18](); else regPC++; return 8; };
+	opcode[0x28] = [&]()->int {if (getFlag(FZ))opcode[0x18](); else regPC++; return 8; };
+	opcode[0x30] = [&]()->int {if (!getFlag(FC))opcode[0x18](); else regPC++; return 8; };
+	opcode[0x38] = [&]()->int {if (getFlag(FC))opcode[0x18](); else regPC++; return 8; };
+
+	//call
+	//CALL nn
+	opcode[0xCD] = [&]()->int {doubleByte tmp = readDouble_(regPC); regPC += 2; regSP -= 2; writeDouble_(regSP, regPC); regPC = tmp; return 12; };
+
+	//CALL cc,nn
+	opcode[0xC4] = [&]()->int {if (!getFlag(FZ))opcode[0xCD](); else regPC += 2; return 12; };
+	opcode[0xCC] = [&]()->int {if (getFlag(FZ))opcode[0xCD](); else regPC += 2; return 12; };
+	opcode[0xD4] = [&]()->int {if (!getFlag(FC))opcode[0xCD](); else regPC += 2; return 12; };
+	opcode[0xDC] = [&]()->int {if (getFlag(FC))opcode[0xCD](); else regPC += 2; return 12; };
+
+	//restart
+	//RST n
+	opcode[0xC7] = [&]()->int { regSP -= 2; writeDouble_(regSP, regPC); regPC = 0x00; return 32; };
+	opcode[0xCF] = [&]()->int { regSP -= 2; writeDouble_(regSP, regPC); regPC = 0x08; return 32; };
+	opcode[0xD7] = [&]()->int { regSP -= 2; writeDouble_(regSP, regPC); regPC = 0x10; return 32; };
+	opcode[0xDF] = [&]()->int { regSP -= 2; writeDouble_(regSP, regPC); regPC = 0x18; return 32; };
+	opcode[0xE7] = [&]()->int { regSP -= 2; writeDouble_(regSP, regPC); regPC = 0x20; return 32; };
+	opcode[0xEF] = [&]()->int { regSP -= 2; writeDouble_(regSP, regPC); regPC = 0x28; return 32; };
+	opcode[0xF7] = [&]()->int { regSP -= 2; writeDouble_(regSP, regPC); regPC = 0x30; return 32; };
+	opcode[0xFF] = [&]()->int { regSP -= 2; writeDouble_(regSP, regPC); regPC = 0x38; return 32; };
+
+	//return
+	//RET
+	opcode[0xC9] = [&]()->int {regPC = readDouble_(regSP); regSP += 2; return 8; };
+
+	//RET cc
+	opcode[0xC0] = [&]()->int {if (!getFlag(FZ))opcode[0xC9](); return 12; };
+	opcode[0xC8] = [&]()->int {if (getFlag(FZ))opcode[0xC9](); return 12; };
+	opcode[0xD0] = [&]()->int {if (!getFlag(FC))opcode[0xC9](); return 12; };
+	opcode[0xD8] = [&]()->int {if (getFlag(FC))opcode[0xC9](); return 12; };
+
+	//RETI
+	opcode[0xD9] = [&]()->int {opcode[0xC9](); opcode[0xFB](); return 8; };
+
+	//ext ops
+	opcode[0xCB] = [&]()->int {return CBopcode[readByte_(regPC++)](); };
 };
