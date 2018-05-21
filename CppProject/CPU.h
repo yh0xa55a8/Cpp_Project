@@ -27,15 +27,8 @@ private:
 	std::array<std::function<int()>, 0x100> opcode;
 	std::array<std::function<int()>, 0x100> CBopcode;
 	//assist funcs for instructions
-	bool getBit(int bit, const byte& n) { return (n >> bit) & 1; }
-	void setBit(int bit, byte &n, bool val) {
-		if (val) {
-			n |= (1 << bit);
-		}
-		else {
-			n &= 0xFF - (1 << bit);
-		}
-	}
+	bool getBit(int, byte);
+	void setBit(int , byte &, bool);
 	enum flags { FZ = 7, FN = 6, FH = 5, FC = 4 };
 	bool getFlag(flags flag) {return getBit(flag,byteRegs[F]);}
 	void setFlag(flags flag, bool val) {setBit(flag, byteRegs[F], val);}
@@ -45,133 +38,24 @@ private:
 	void writeByte_(doubleByte add, byte val) { simSto->writeByte(add, val); }
 	doubleByte readDouble_(doubleByte add) { return readByte_(add + 1) << 8 + readByte_(add); }
 	void writeDouble_(doubleByte add, doubleByte val) { writeByte_(add, val & 0x00FF); writeByte_(add + 1, (val & 0xFF00) >> 8); }
-	void ADD(byte n) {
-		byte re = byteRegs[A] + n;
-		setFlag(FZ, (re == 0 || re == 0x100));
-		setFlag(FN, false);
-		setFlag(FH, (byteRegs[A] ^ n^re) & 0x10);
-		setFlag(FC, (byteRegs[A] ^ n^re) & 0x100);
-		byteRegs[A] = re & 0xFF;
-	}
-	void ADC(byte n) {
-		byte re = byteRegs[A] + n + getFlag(FC);
-		setFlag(FZ, (re == 0 || re == 0x100));
-		setFlag(FN, false);
-		setFlag(FH, (byteRegs[A] ^ n^re) & 0x10);
-		setFlag(FC, (byteRegs[A] ^ n^re) & 0x100);
-		byteRegs[A] = re & 0xFF;
-	}
-	void SUB(byte n) {
-		byte re = byteRegs[A] - n;
-		setFlag(FZ, (re == 0));
-		setFlag(FN, true);
-		setFlag(FH, (byteRegs[A] ^ n^re) & 0x10);
-		setFlag(FC, (byteRegs[A] ^ n^re) & 0x100);
-		byteRegs[A] = re & 0xFF;
-	}
-	void SBC(byte n) {
-		byte re = byteRegs[A] - n - getFlag(FC);
-		setFlag(FZ, (re == 0));
-		setFlag(FN, true);
-		setFlag(FH, (byteRegs[A] ^ n^re) & 0x10);
-		setFlag(FC, (byteRegs[A] ^ n^re) & 0x100);
-		byteRegs[A] = re & 0xFF;
-	}
-	void AND(byte n) {
-		byte re = byteRegs[A] & n;
-		setFlag(FZ, (re == 0));
-		setFlag(FN, true);
-		setFlag(FH, true);
-		setFlag(FC, false);
-		byteRegs[A] = re & 0xFF;
-	}
-	void OR(byte n) {
-		byte re = byteRegs[A] | n;
-		setFlag(FZ, (re == 0));
-		setFlag(FN, false);
-		setFlag(FH, false);
-		setFlag(FC, false);
-		byteRegs[A] = re & 0xFF;
-	}
-	void XOR(byte n) {
-		byte re = byteRegs[A] ^ n;
-		setFlag(FZ, (re == 0));
-		setFlag(FN, false);
-		setFlag(FH, false);
-		setFlag(FC, false);
-		byteRegs[A] = re & 0xFF;
-	}
-	void CP(byte n) {
-		byte re = byteRegs[A] - n;
-		setFlag(FZ, (re == 0));
-		setFlag(FN, true);
-		setFlag(FH, (byteRegs[A] ^ n^re) & 0x10);
-		setFlag(FC, (byteRegs[A] ^ n^re) & 0x100);
-	}
-	byte INC(byte n) {
-		byte re = n + 1;
-		setFlag(FZ, (re == 0x100));
-		setFlag(FN, false);
-		setFlag(FH, (n ^re) & 0x10);
-		return re & 0xFF;
-	}
-	byte DEC(byte n) {
-		byte re = n - 1;
-		setFlag(FZ, (re == 0));
-		setFlag(FN, true);
-		setFlag(FH, (n ^re) & 0x10);
-		return re & 0xFF;
-	}
-	void ADD(doubleByte n) {
-		doubleByte HL = doubleReg(H, L);
-		unsigned int re = HL + n;
-		setFlag(FN, false);
-		setFlag(FH, (HL^n^re) & 0x1000);
-		setFlag(FC, (HL^n^re) & 0x10000);
-		byteRegs[H] = (re >> 8) & 0xFF;
-		byteRegs[L] = re & 0xFF;
-	}
-	void ADD(signedByte& n) {
-		int re = regSP + n;
-		setFlag(FZ, false);
-		setFlag(FN, false);
-		setFlag(FH, (regSP^re) & 0x1000);
-		setFlag(FC, re & 0x10000);
-		regSP = re & 0xFFFF;
-	}
-	byte RLC(byte n) {
-		setFlag(FN, false);
-		setFlag(FH, false);
-		setFlag(FC, n >> 7);
-		n = (n << 1) + getFlag(FC);
-		setFlag(FZ, !n);
-		return n;
-	}
-	byte RL(byte n) {
-		setFlag(FN, false);
-		setFlag(FH, false);
-		bool tmp = getFlag(FC);
-		setFlag(FC, n >> 7);
-		n = (n << 1) + tmp;
-		setFlag(FZ, !n);
-		return n;
-	}
-	byte RRC(byte n) {
-		setFlag(FN, false);
-		setFlag(FH, false);
-		setFlag(FC, n & 1);
-		n = (n >> 1) + (static_cast<byte>(getFlag(FC)) << 7);
-		setFlag(FZ, !n);
-		return n;
-	}
-	byte RR(byte n) {
-		setFlag(FN, false); 
-		setFlag(FH, false); 
-		bool tmp = getFlag(FC); 
-		setFlag(FC, n & 1); 
-		n = (n >> 1) + (static_cast<byte>(tmp) << 7); 
-		setFlag(FZ, !n);
-		return n;
-	}
+	void ADD(byte n);
+	void ADC(byte n);
+	void SUB(byte n);
+	void SBC(byte n);
+	void AND(byte n);
+	void OR(byte n);
+	void XOR(byte n);
+	void CP(byte n);
+	byte INC(byte n);
+	byte DEC(byte n);
+	void ADD(doubleByte n);
+	void ADD(signedByte& n);
+	byte RLC(byte n);
+	byte RL(byte n);
+	byte RRC(byte n);
+	byte RR(byte n);
+	byte SLA(byte n);
+	byte SRA(byte n);
+	byte SRL(byte n);
 };
 
