@@ -8,15 +8,15 @@ class CPU :public QObject
 {
 	Q_OBJECT
 public:
-	CPU(Storage&);
+	void init(Storage&);
+	int step();
 private:
 	bool haltFlag = false;
-	bool stopFlag = false;
 	bool interruptEnabled = true;
 	bool interruptSwitched = false;
 	Storage * simSto;
 
-	int timeOfLastInst;
+	int deltaTime=0;
 	//registers
 	std::array<byte, 8> byteRegs{ 0x01,0xB0,0x00,0x13,0x00,0xD8,0x01,0x4D };
 	enum bReg { A = 0, F = 1, B = 2, C = 3, D = 4, E = 5, H = 6, L = 7 };

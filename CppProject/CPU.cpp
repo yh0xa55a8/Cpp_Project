@@ -1,11 +1,32 @@
 #include "CPU.h"
 
-
-
-CPU::CPU(Storage& _sto)
+void CPU::init(Storage &_sto)
 {
 	loadOpcode();
 	simSto = &_sto;
+	byteRegs={0x01,0xB0,0x00,0x13,0x00,0xD8,0x01,0x4D };
+	regPC = 0x0100;
+	regSP = 0xFFFE;
+	deltaTime = 0;
+}
+
+int CPU::step() {
+	byte interruptStatus = readByte_(0xFFFF)&readByte_(0xFF0F);
+	if (interruptStatus&&interruptEnabled) {
+		if (haltFlag) {
+			haltFlag = false;
+		}
+		//´¦ÀíÖĞ¶Ï
+	}
+	else {
+		if (haltFlag) {
+			return 4;
+		}
+		else {
+			deltaTime = opcode[regPC++]();
+		}
+	}
+	return deltaTime;
 }
 
 void CPU::loadOpcode()
@@ -319,7 +340,7 @@ void CPU::loadOpcode()
 	opcode[0x76] = [&]()->int {haltFlag = true; return 4; };
 
 	//STOP
-	opcode[0x10] = [&]()->int {regPC++; stopFlag = true; return 4; };
+	opcode[0x10] = [&]()->int {regPC++; haltFlag = true; return 4; };
 
 	//DI and EI
 	opcode[0xF3] = [&]()->int {interruptSwitched = true; return 4; };

@@ -20,7 +20,7 @@ signals:
 signals:
 	void romClosed();
 public slots:
-	void flashImage(const QImage &);
+	void flashImage(const QImage);
 private:
 	void openFile();
 	void closeRom();

@@ -15,7 +15,7 @@ mainWindow::mainWindow(QWidget *parent)
 }
 //窗口构造,同时将用于显示图像的ui.label设为全黑
 
-void mainWindow::flashImage(const QImage &image) {
+void mainWindow::flashImage(const QImage image) {
 	ui.label->setPixmap(QPixmap::fromImage(image));
 }
 //使用Qimage为参数更新窗口中的图像

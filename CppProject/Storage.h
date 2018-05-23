@@ -13,14 +13,16 @@ class Storage:public QObject
 	Q_OBJECT
 public:
 	void init();
-	const byte & readByte(const doubleByte address) { return storage[address]; };
-	void writeByte(const doubleByte& address, byte info) { storage[address] = info; }
+	const byte & readByte(doubleByte);
+	void writeByte(doubleByte, byte);
 signals:
 	void getRomComp();
 public slots:
 	void getRom(QString);
 private:
 	std::array<byte, 0x10000> storage;
-	
+	//VRam
+	std::array<std::array<std::array<int, 8>, 8>, 384> VRamTileSet;
+	void updateTileSet(doubleByte);
 };
 

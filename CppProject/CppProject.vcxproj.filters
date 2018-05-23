@@ -45,6 +45,9 @@
     <ClCompile Include="CPU.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GPU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="mainWindow.h">
@@ -54,6 +57,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="CPU.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="GPU.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
