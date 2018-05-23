@@ -37,10 +37,12 @@ inline const byte & Storage::readByte(doubleByte address) {
 		address -= 0x1000; 
 	return storage[address]; }
 
-inline void Storage::writeByte(doubleByte address, byte info) {
-	if (address > 0xDFFF && address < 0xFE00)address -= 0x1000;
+void Storage::writeByte(doubleByte address, byte info) {
+	if (address > 0xDFFF && address < 0xFE00)
+		address -= 0x1000;
 	storage[address] = info;
-	if (address > 0x7FFFF && address < 0x9800)updateTileSet();
+	if (address > 0x7FFFF && address < 0x9800)
+		updateTileSet(address);
 }
 
 void Storage::updateTileSet(doubleByte add) {

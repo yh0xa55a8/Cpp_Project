@@ -1,14 +1,18 @@
 #pragma once
 
 #include <QObject>
+#include <QImage>
+#include <QColor>
 #include "Storage.h"
 
 class GPU : public QObject
 {
 	Q_OBJECT
-	void step(int);
 public:
 	void init(Storage&, std::array<std::array<std::array<int, 8>, 8>, 384>&);
+	void step(int);
+signals:
+	void freshImage(QImage);
 private:
 	byte readByte_(doubleByte add) { return simSto->readByte(add); }
 	void writeByte_(doubleByte add, byte val) { simSto->writeByte(add, val); }

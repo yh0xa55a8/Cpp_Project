@@ -1,4 +1,4 @@
-#include "GPU.h"C00
+#include "GPU.h"
 
 void GPU::init(Storage& _sto,std::array<std::array<std::array<int, 8>, 8>, 384>& Vram)
 {
@@ -11,10 +11,34 @@ void GPU::init(Storage& _sto,std::array<std::array<std::array<int, 8>, 8>, 384>&
 void GPU::freshLine()
 {
 	auto getBit = [](byte val, int bit)->bool {return (val >> bit) & 1; };
+	enum color { black = 0, dark = 1, light = 2, white = 3 };
+	auto setPalette = [getBit](byte BGP)->std::array<color, 4>{
+		std::array<color, 4> re;
+		for (int i = 0; i < 5; i++) {
+			bool bitA = getBit(BGP, 2 * i);
+			bool bitB = getBit(BGP, 2 * i + 1);
+			re[i] = static_cast<color>(bitB ? 2 : 0 + bitA ? 1 : 0);
+		}
+		return re;
+	};
+	auto toRGB = [](color n)->const QColor {
+		switch (n) {
+		case black:
+			return QColor(255, 255, 255);
+		case dark:
+			return QColor(192, 192, 192);
+		case light:
+			return QColor(96, 96, 96);
+		case white:
+			return QColor(0, 0, 0);
+		}
+	};
 	byte LCDC = readByte_(addLCDC);
 	byte LY = readByte_(addLY);
 	byte SCX = readByte_(addSCX);
 	byte SCY = readByte_(addSCY);
+	byte BGP = readByte_(addBGP);
+	std::array<color, 4> palette = setPalette(BGP);
 	int inBgX, inBgY, LX, tileX, tileY, inTileX, inTileY;
 	bool bgMapLoc = getBit(LCDC, 3);
 	bool bgSetLoc = getBit(LCDC, 4);
@@ -29,7 +53,7 @@ void GPU::freshLine()
 		inTileY = SCY % 8 + LY;
 		byte tileInSet = readByte_(bgMapLoc ? (0x9C00 + 32 * tileY + tileX) : (0x9800 + 32 * tileY + tileX));
 		tileInSet += bgSetLoc ? 0 : 256;
-
+		imageBuffer.setPixelColor(LX, LY, toRGB(palette[TileSet->operator[](tileInSet)[tileX][tileY]]));
 	}
 }
 
@@ -47,7 +71,7 @@ void GPU::step(int deltaTime)
 		if (GPUclock >= 172) {
 			GPUclock -= 172;
 			mode = Hb;
-			//向缓存更新一行
+			freshLine();
 		}
 		break;
 	case Hb:
@@ -56,7 +80,8 @@ void GPU::step(int deltaTime)
 			line++;
 			if (line == 143) {
 				mode = Vb;
-				//发送数据到window
+				emit freshImage(imageBuffer);
+				imageBuffer.fill(Qt::white);
 			}
 			else {
 				mode = OAM;

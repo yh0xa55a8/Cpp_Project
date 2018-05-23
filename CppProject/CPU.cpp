@@ -23,7 +23,7 @@ int CPU::step() {
 			return 4;
 		}
 		else {
-			deltaTime = opcode[regPC++]();
+			deltaTime = opcode[readByte_(regPC++)]();
 		}
 	}
 	return deltaTime;
