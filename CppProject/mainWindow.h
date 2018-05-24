@@ -5,20 +5,28 @@
 #include <QString>
 #include <QFileDialog>
 #include <iostream>
-
+#include <map>
+#include <QKeyEvent>
+#include <QCloseEvent>
+#include "SimThread.h"
 class mainWindow : public QMainWindow
 {
 	Q_OBJECT
 public:
 	mainWindow(QWidget *parent = Q_NULLPTR);
-	void flashImage(const QImage &);
-	void openFile();
-	//virtual void keyPressEvent(QKeyEvent *);
-	QString getFilePath() { return filePath; }
-private:
-	QString filePath;
-	QLabel surface;
-	Ui::mainWindowClass ui;
+
 signals:
-	void fileOpened();
+	void fileOpened(QString);
+signals:
+	void romClosed();
+public slots:
+	void flashImage(const QImage &);
+private:
+	void openFile();
+	void closeRom();
+	void showAbout() { QMessageBox::about(nullptr, "GameBoy Simulator", "An OOP course project.\nProgrammed by 1752704 and 1752086\n"); }
+	std::map<Qt::Key, bool> keyStatus;
+	Ui::mainWindowClass ui;
+	void keyPressEvent(QKeyEvent *);
+	void keyReleaseEvent(QKeyEvent *);
 };
