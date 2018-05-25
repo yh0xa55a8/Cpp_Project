@@ -10,12 +10,12 @@ mainWindow::mainWindow(QWidget *parent)
 	QObject::connect(ui.actionAbout, &QAction::triggered, this,&mainWindow::showAbout);
 	QImage image{ 160, 144, QImage::Format_RGB16 };
 	image.fill(Qt::black);
-	this->flashImage(image);
+	this->freshImage(image);
 	ui.label->grabKeyboard();
 }
 //窗口构造,同时将用于显示图像的ui.label设为全黑
 
-void mainWindow::flashImage(const QImage image) {
+void mainWindow::freshImage(const QImage image) {
 	ui.label->setPixmap(QPixmap::fromImage(image));
 }
 //使用Qimage为参数更新窗口中的图像
@@ -31,7 +31,7 @@ void mainWindow::openFile() {
 void mainWindow::closeRom() {
 	QImage image{ 160, 144, QImage::Format_RGB16 };
 	image.fill(Qt::black);
-	this->flashImage(image);
+	this->freshImage(image);
 	emit romClosed();
 }
 

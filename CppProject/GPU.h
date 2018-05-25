@@ -21,7 +21,6 @@ private:
 	Storage* simSto;
 	std::array<std::array<std::array<int, 8>, 8>, 384>* TileSet;
 	int GPUclock=0;
-	int line=0;
 	enum modes {Hb=0,Vb=1,OAM=2,VRAM=3};
 	modes mode=Hb;
 	void freshLine();

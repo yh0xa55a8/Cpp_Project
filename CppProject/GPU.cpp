@@ -14,10 +14,10 @@ void GPU::freshLine()
 	enum color { black = 0, dark = 1, light = 2, white = 3 };
 	auto setPalette = [getBit](byte BGP)->std::array<color, 4>{
 		std::array<color, 4> re;
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 4; i++) {
 			bool bitA = getBit(BGP, 2 * i);
 			bool bitB = getBit(BGP, 2 * i + 1);
-			re[i] = static_cast<color>(bitB ? 2 : 0 + bitA ? 1 : 0);
+			re[i] = static_cast<color>((bitB ? 2 : 0) + (bitA ? 1 : 0));
 		}
 		return re;
 	};
@@ -42,18 +42,20 @@ void GPU::freshLine()
 	int inBgX, inBgY, LX, tileX, tileY, inTileX, inTileY;
 	bool bgMapLoc = getBit(LCDC, 3);
 	bool bgSetLoc = getBit(LCDC, 4);
-	for (LX = 0; LX < 144; LX++) {
+	for (LX = 0; LX < 160; LX++) {
 		inBgX = SCX + LX;
-		inBgX = SCY + LY;
+		inBgY = SCY + LY;
 		tileX = inBgX / 8;
-		tileY = inBgX / 8;
+		tileY = inBgY / 8;
 		if (tileX > 32)tileX -= 32;
 		if (tileY > 32)tileY -= 32;
-		inTileX = SCX % 8 + LX;
-		inTileY = SCY % 8 + LY;
+		inTileX = (SCX % 8 + LX) % 8;
+		inTileY = (SCY % 8 + LY) % 8;
 		byte tileInSet = readByte_(bgMapLoc ? (0x9C00 + 32 * tileY + tileX) : (0x9800 + 32 * tileY + tileX));
 		tileInSet += bgSetLoc ? 0 : 256;
-		imageBuffer.setPixelColor(LX, LY, toRGB(palette[TileSet->operator[](tileInSet)[tileX][tileY]]));
+		int tmpColor = TileSet->operator[](tileInSet)[inTileY][inTileX];
+		imageBuffer.setPixelColor(LX, LY, toRGB(palette[tmpColor]));
+		writeByte_(addLY, LY+1);
 	}
 }
 
@@ -77,10 +79,11 @@ void GPU::step(int deltaTime)
 	case Hb:
 		if (GPUclock >= 204) {
 			GPUclock -=204;
-			line++;
-			if (line == 143) {
+			byte line = readByte_(addLY);
+			if (line > 143) {
 				mode = Vb;
 				emit freshImage(imageBuffer);
+				imageBuffer.save("debug.png");
 				imageBuffer.fill(Qt::white);
 			}
 			else {
@@ -91,10 +94,11 @@ void GPU::step(int deltaTime)
 	case Vb:
 		if (GPUclock >= 456) {
 			GPUclock -= 456;
-			line++;
+			byte line = readByte_(addLY) + 1;
+			writeByte_(addLY, line);
 			if (line > 153) {
 				mode = OAM;
-				line = 0;
+				writeByte_(addLY, 0);
 			}
 		}
 	}

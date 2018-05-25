@@ -32,11 +32,12 @@ private:
 	enum flags { FZ = 7, FN = 6, FH = 5, FC = 4 };
 	bool getFlag(flags flag) {return getBit(flag,byteRegs[F]);}
 	void setFlag(flags flag, bool val) {setBit(flag, byteRegs[F], val);}
-	doubleByte doubleRegAddr(bReg HByte, bReg LByte) { return (byteRegs[LByte] << 4) | byteRegs[HByte]; }
-	doubleByte doubleReg(bReg HByte, bReg LByte) { return (byteRegs[HByte] << 4) | byteRegs[LByte]; };
+	doubleByte doubleReg(bReg HByte, bReg LByte) { return (byteRegs[HByte] << 8) | byteRegs[LByte]; };
 	byte readByte_(doubleByte add) { return simSto->readByte(add); }
-	void writeByte_(doubleByte add, byte val) { simSto->writeByte(add, val); }
-	doubleByte readDouble_(doubleByte add) { return readByte_(add + 1) << 8 + readByte_(add); }
+	void writeByte_(doubleByte add, byte val) { 
+		simSto->writeByte(add, val); 
+	}
+	doubleByte readDouble_(doubleByte add) { return (readByte_(add + 1) << 8) + readByte_(add); }
 	void writeDouble_(doubleByte add, doubleByte val) { writeByte_(add, val & 0x00FF); writeByte_(add + 1, (val & 0xFF00) >> 8); }
 	void ADD(byte n);
 	void ADC(byte n);

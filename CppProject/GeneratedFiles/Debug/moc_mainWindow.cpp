@@ -35,11 +35,11 @@ QT_MOC_LITERAL(0, 0, 10), // "mainWindow"
 QT_MOC_LITERAL(1, 11, 10), // "fileOpened"
 QT_MOC_LITERAL(2, 22, 0), // ""
 QT_MOC_LITERAL(3, 23, 9), // "romClosed"
-QT_MOC_LITERAL(4, 33, 10) // "flashImage"
+QT_MOC_LITERAL(4, 33, 10) // "freshImage"
 
     },
     "mainWindow\0fileOpened\0\0romClosed\0"
-    "flashImage"
+    "freshImage"
 };
 #undef QT_MOC_LITERAL
 
@@ -81,7 +81,7 @@ void mainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         switch (_id) {
         case 0: _t->fileOpened((*reinterpret_cast< QString(*)>(_a[1]))); break;
         case 1: _t->romClosed(); break;
-        case 2: _t->flashImage((*reinterpret_cast< const QImage(*)>(_a[1]))); break;
+        case 2: _t->freshImage((*reinterpret_cast< const QImage(*)>(_a[1]))); break;
         default: ;
         }
     } else if (_c == QMetaObject::IndexOfMethod) {

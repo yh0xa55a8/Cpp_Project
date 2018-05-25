@@ -6,6 +6,7 @@
 class SimThread:public QThread
 {
 public:
+	GPU simGPU;
 	~SimThread();
 	void run();
 	Storage & getSto() { return simSto; }

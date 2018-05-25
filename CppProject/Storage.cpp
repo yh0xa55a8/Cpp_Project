@@ -27,7 +27,9 @@ void Storage::getRom(QString filePath) {
 		return;
 	}
 	for (int i = 0x0000; i < 0x8000; i++) {
-		inFile >> storage[i];
+		char tmp;
+		inFile.get(tmp);
+		storage[i] = reinterpret_cast<byte&>(tmp);
 	}
 	emit getRomComp();
 }
@@ -41,7 +43,7 @@ void Storage::writeByte(doubleByte address, byte info) {
 	if (address > 0xDFFF && address < 0xFE00)
 		address -= 0x1000;
 	storage[address] = info;
-	if (address > 0x7FFFF && address < 0x9800)
+	if (address > 0x7FFF && address < 0x9800)
 		updateTileSet(address);
 }
 
@@ -53,7 +55,7 @@ void Storage::updateTileSet(doubleByte add) {
 	byte dataA = readByte(add);
 	byte dataB = readByte(add + 1);
 	for (int j = 0; j < 8; j++) {
-		int tmpColor = getBit(dataA, 7 - j) ? 1 : 0 + getBit(dataB, 7 - j) ? 2 : 0;
+		int tmpColor = (getBit(dataA, 7 - j) ? 1 : 0) + (getBit(dataB, 7 - j) ? 2 : 0);
 		VRamTileSet[tileNum][rowNum][j] = tmpColor;
 	}
 }
