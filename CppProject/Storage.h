@@ -18,8 +18,12 @@ public:
 	void writeByte(doubleByte, byte);
 signals:
 	void getRomComp();
+signals:
+	void requestKey(bool);
 public slots:
 	void getRom(QString);
+public slots:
+	void writeKey(byte);
 private:
 	std::array<byte, 0x10000> storage;
 	//VRam

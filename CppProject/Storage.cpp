@@ -40,6 +40,9 @@ inline const byte & Storage::readByte(doubleByte address) {
 	return storage[address]; }
 
 void Storage::writeByte(doubleByte address, byte info) {
+	if (address == 0xFF00) {
+		emit requestKey(info == 0x20 ? true : false);
+	}
 	if (address > 0xDFFF && address < 0xFE00)
 		address -= 0x1000;
 	storage[address] = info;
@@ -58,4 +61,8 @@ void Storage::updateTileSet(doubleByte add) {
 		int tmpColor = (getBit(dataA, 7 - j) ? 1 : 0) + (getBit(dataB, 7 - j) ? 2 : 0);
 		VRamTileSet[tileNum][rowNum][j] = tmpColor;
 	}
+}
+
+void Storage::writeKey(byte keys) {
+	storage[0xFF00] |= keys;
 }

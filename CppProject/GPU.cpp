@@ -32,6 +32,7 @@ void GPU::freshLine()
 		case white:
 			return QColor(0, 0, 0);
 		}
+		return QColor(0, 0, 0);
 	};
 	byte LCDC = readByte_(addLCDC);
 	byte LY = readByte_(addLY);
@@ -83,7 +84,7 @@ void GPU::step(int deltaTime)
 			if (line > 143) {
 				mode = Vb;
 				emit freshImage(imageBuffer);
-				imageBuffer.save("debug.png");
+				//imageBuffer.save("debug.png");
 				imageBuffer.fill(Qt::white);
 			}
 			else {
