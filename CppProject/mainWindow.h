@@ -20,11 +20,9 @@ signals:
 signals:
 	void romClosed();
 signals:
-	void keys(byte);
+	void keys(byte,byte);
 public slots:
 	void freshImage(const QImage);
-public slots:
-	void sendKey(bool);
 private:
 	void openFile();
 	void closeRom();

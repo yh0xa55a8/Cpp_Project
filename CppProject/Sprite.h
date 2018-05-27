@@ -2,6 +2,7 @@
 class Sprite
 {
 public:
+	bool enable=false;
 	int posX;
 	int posY;
 	int dataIndex;

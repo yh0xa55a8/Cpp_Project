@@ -20,16 +20,14 @@ public:
 	void writeByte(doubleByte, byte);
 signals:
 	void getRomComp();
-signals:
-	void requestKey(bool);
 public slots:
 	void getRom(QString);
 public slots:
-	void writeKey(byte);
+	void writeKey(byte,byte);
 private:
 	std::array<byte, 0x10000> storage;
 	//VRam
-	
+	std::array<byte, 2> keys;
 	void updateTileSet(doubleByte);
 	void updataSpriteSet(doubleByte);
 };

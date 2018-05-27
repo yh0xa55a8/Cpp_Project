@@ -21,7 +21,7 @@ private:
 	QImage imageBuffer { 160,144, QImage::Format_RGB16 };
 	Storage* simSto;
 	std::array<std::array<std::array<int, 8>, 8>, 384>* TileSet;
-	std::array<Sprite, 40>* spriteSet;
+	std::array<Sprite, 40>* SpriteSet;
 	int GPUclock=0;
 	enum modes {Hb=0,Vb=1,OAM=2,VRAM=3};
 	modes mode=Hb;

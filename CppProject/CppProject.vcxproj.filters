@@ -65,6 +65,9 @@
     <QtMoc Include="GPU.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="SimThread.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="mainWindow.ui">
@@ -78,9 +81,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="macros.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SimThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Sprite.h">

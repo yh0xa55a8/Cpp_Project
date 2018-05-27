@@ -19,3 +19,8 @@ void SimThread::run()
 		simGPU.step(deltaTime);
 	}
 }
+
+void SimThread::restart() {
+	QThread::requestInterruption();
+	
+}

@@ -37,15 +37,21 @@ void Storage::getRom(QString filePath) {
 inline const byte & Storage::readByte(doubleByte address) { 
 	if (address > 0xDFFF && address < 0xFE00)
 		address -= 0x1000; 
+	if (address == 0xFF00) {
+		if (storage[0xFF00]==0x10) {
+			return keys[0];
+		}
+		else return keys[1];
+	}
 	return storage[address]; }
 
 void Storage::writeByte(doubleByte address, byte info) {
-	if (address == 0xFF00) {
-		emit requestKey(info == 0x20 ? true : false);
-	}
 	if (address > 0xDFFF && address < 0xFE00)
 		address -= 0x1000;
 	storage[address] = info;
+	if (address > 0xFDFF && address < 0xFEA0) {
+		updataSpriteSet(address);
+	}
 	if (address > 0x7FFF && address < 0x9800)
 		updateTileSet(address);
 }
@@ -68,6 +74,7 @@ void Storage::updataSpriteSet(doubleByte add)
 	auto getBit = [](byte val, int bit)->bool {return (val >> bit) & 1; };
 	auto spriteNum = (add - 0xFE00) / 4;
 	doubleByte headAdd = 0xFE00 + 4 * spriteNum;
+	SpriteSet[spriteNum].enable = true;
 	SpriteSet[spriteNum].posY = readByte(headAdd) - 0x10;
 	SpriteSet[spriteNum].posX = readByte(headAdd + 1) - 0x08;
 	SpriteSet[spriteNum].dataIndex = readByte(headAdd + 2);
@@ -77,6 +84,7 @@ void Storage::updataSpriteSet(doubleByte add)
 	SpriteSet[spriteNum].palette = getBit(readByte(headAdd + 3), 4);
 }
 
-void Storage::writeKey(byte keys) {
-	storage[0xFF00] |= keys;
+void Storage::writeKey(byte r1keys,byte r2keys) {
+	keys[0] = (~r1keys);
+	keys[1] = (~r2keys);
 }

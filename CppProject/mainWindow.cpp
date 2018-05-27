@@ -38,30 +38,18 @@ void mainWindow::closeRom() {
 void mainWindow::keyPressEvent(QKeyEvent *k)
 {
 	keyStatus[static_cast<Qt::Key>(k->key())] = true;
+	byte r1 = 0, r2 = 0;
+	r1 = (((((keyStatus[Qt::Key_Return] << 1) + keyStatus[Qt::Key_Space]) << 1) + keyStatus[Qt::Key_X]) << 1) + keyStatus[Qt::Key_Z];
+	r2 = (((((keyStatus[Qt::Key_Down] << 1) + keyStatus[Qt::Key_Up]) << 1) + keyStatus[Qt::Key_Left]) << 1) + keyStatus[Qt::Key_Right];
+	emit keys(r1, r2);
 }
 
 void mainWindow::keyReleaseEvent(QKeyEvent *k)
 {
-	Qt::Key tmp = static_cast<Qt::Key>(k->key());
 	keyStatus[static_cast<Qt::Key>(k->key())] = false;
+	byte r1 = 0, r2 = 0;
+	r1 = (((((keyStatus[Qt::Key_Return] << 1) + keyStatus[Qt::Key_Space]) << 1) + keyStatus[Qt::Key_X]) << 1) + keyStatus[Qt::Key_Z];
+	r2 = (((((keyStatus[Qt::Key_Down] << 1) + keyStatus[Qt::Key_Up]) << 1) + keyStatus[Qt::Key_Left]) << 1) + keyStatus[Qt::Key_Right];
+	emit keys(r1, r2);
 }
 //处理键盘按下/释放事件
-
-void mainWindow::sendKey(bool row) {
-	byte status = 0;
-	if (row) {
-		status = (((((keyStatus[Qt::Key_Enter] << 1) + keyStatus[Qt::Key_Space]) << 1) + keyStatus[Qt::Key_X]) << 1) + keyStatus[Qt::Key_Z];
-	}
-	else {
-		status = (((((keyStatus[Qt::Key_Down] << 1) + keyStatus[Qt::Key_Up]) << 1) + keyStatus[Qt::Key_Left]) << 1) + keyStatus[Qt::Key_Right];
-	}
-	emit keys(status);
-	keyStatus[Qt::Key_Enter] = false;
-	keyStatus[Qt::Key_Space] = false;
-	keyStatus[Qt::Key_X] = false;
-	keyStatus[Qt::Key_Z] = false;
-	keyStatus[Qt::Key_Down] = false;
-	keyStatus[Qt::Key_Up] = false;
-	keyStatus[Qt::Key_Left] = false;
-	keyStatus[Qt::Key_Right] = false;
-}
