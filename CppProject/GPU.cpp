@@ -1,9 +1,10 @@
 #include "GPU.h"
 
-void GPU::init(Storage& _sto,std::array<std::array<std::array<int, 8>, 8>, 384>& Vram)
+void GPU::init(Storage& _sto)
 {
 	simSto = &_sto;
-	TileSet = &Vram;
+	TileSet = &(_sto.VRamTileSet);
+	spriteSet = &(_sto.SpriteSet);
 	imageBuffer.fill(Qt::white);
 
 }
@@ -40,6 +41,7 @@ void GPU::freshLine()
 	byte SCY = readByte_(addSCY);
 	byte BGP = readByte_(addBGP);
 	std::array<color, 4> palette = setPalette(BGP);
+	std::array<std:array<color, 4>, 2> spritePalette;
 	int inBgX, inBgY, LX, tileX, tileY, inTileX, inTileY;
 	bool bgMapLoc = getBit(LCDC, 3);
 	bool bgSetLoc = getBit(LCDC, 4);

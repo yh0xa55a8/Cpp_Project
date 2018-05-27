@@ -63,6 +63,20 @@ void Storage::updateTileSet(doubleByte add) {
 	}
 }
 
+void Storage::updataSpriteSet(doubleByte add)
+{
+	auto getBit = [](byte val, int bit)->bool {return (val >> bit) & 1; };
+	auto spriteNum = (add - 0xFE00) / 4;
+	doubleByte headAdd = 0xFE00 + 4 * spriteNum;
+	SpriteSet[spriteNum].posY = readByte(headAdd) - 0x10;
+	SpriteSet[spriteNum].posX = readByte(headAdd + 1) - 0x08;
+	SpriteSet[spriteNum].dataIndex = readByte(headAdd + 2);
+	SpriteSet[spriteNum].underBG = getBit(readByte(headAdd + 3), 7);
+	SpriteSet[spriteNum].flipY = getBit(readByte(headAdd + 3), 6);
+	SpriteSet[spriteNum].flipX = getBit(readByte(headAdd + 3), 5);
+	SpriteSet[spriteNum].palette = getBit(readByte(headAdd + 3), 4);
+}
+
 void Storage::writeKey(byte keys) {
 	storage[0xFF00] |= keys;
 }
