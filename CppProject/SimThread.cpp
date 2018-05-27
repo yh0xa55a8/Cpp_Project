@@ -10,8 +10,17 @@ SimThread::~SimThread()
 
 void SimThread::run()
 {
-	CPU simCPU(simSto);
-	while (!isInterruptionRequested()) {
+	CPU simCPU;
 
+	simCPU.init(simSto);
+	simGPU.init(simSto);
+	while (!isInterruptionRequested()) {
+		int deltaTime = simCPU.step();
+		simGPU.step(deltaTime);
 	}
+}
+
+void SimThread::restart() {
+	QThread::requestInterruption();
+	
 }

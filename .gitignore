@@ -1,3 +1,6 @@
+#debug generate files
+/CppProject/*.png
+
 # Prerequisites
 *.d
 
@@ -5,7 +8,7 @@
 *.slo
 *.lo
 *.o
-*.obj
+*.obj 
 
 # Precompiled Headers
 *.gch

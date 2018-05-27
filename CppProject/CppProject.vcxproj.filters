@@ -45,6 +45,12 @@
     <ClCompile Include="CPU.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GPU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sprite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="mainWindow.h">
@@ -54,6 +60,12 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="CPU.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="GPU.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="SimThread.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -71,7 +83,7 @@
     <ClInclude Include="macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SimThread.h">
+    <ClInclude Include="Sprite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
