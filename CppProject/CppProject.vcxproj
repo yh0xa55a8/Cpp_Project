@@ -119,8 +119,8 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mainWindow.cpp" />
     <ClCompile Include="SimThread.cpp" />
-    <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="Storage.cpp" />
+    <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="mainWindow.h" />
@@ -133,6 +133,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sprite.h" />
+    <ClInclude Include="Timer.h" />
     <QtMoc Include="CPU.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets</IncludePath>
       <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>

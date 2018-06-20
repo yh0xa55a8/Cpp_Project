@@ -31,6 +31,10 @@ void Storage::getRom(QString filePath) {
 		inFile.get(tmp);
 		storage[i] = reinterpret_cast<byte&>(tmp);
 	}
+	storage[0xFF40] = 0x91;
+	storage[0xFF47] = 0xFC;
+	storage[0xFF48] = 0xFF;
+	storage[0xFF49] = 0xFF;
 	emit getRomComp();
 }
 
@@ -43,6 +47,12 @@ inline const byte & Storage::readByte(doubleByte address) {
 		}
 		else return keys[1];
 	}
+	if (address == 0xFF04) {
+		return simTimer.divider;
+	}
+	if (address == 0xFF05) {
+		return simTimer.tima;
+	}
 	return storage[address]; }
 
 void Storage::writeByte(doubleByte address, byte info) {
@@ -54,6 +64,19 @@ void Storage::writeByte(doubleByte address, byte info) {
 	}
 	if (address > 0x7FFF && address < 0x9800)
 		updateTileSet(address);
+	if (address == 0xFF04) {
+		simTimer.divider = 0;
+	}
+	if (address == 0xFF05) {
+		simTimer.tima = info;
+	}
+	if (address == 0xFF06) {
+		simTimer.tma = info;
+	}
+	if (address == 0xFF07) {
+		simTimer.speedUsing = (info & 0b11);
+		simTimer.timeEnable = (info >> 2) & 0b1;
+	}
 }
 
 void Storage::updateTileSet(doubleByte add) {
@@ -61,8 +84,8 @@ void Storage::updateTileSet(doubleByte add) {
 	auto getBit = [](byte val, int bit)->bool {return (val >> bit) & 1; };
 	int tileNum = (add - 0x8000) / 16;
 	int rowNum = (add - 0x8000) % 16 / 2;
-	byte dataA = readByte(add);
-	byte dataB = readByte(add + 1);
+	byte dataA = storage[add];
+	byte dataB = storage[add+1];
 	for (int j = 0; j < 8; j++) {
 		int tmpColor = (getBit(dataA, 7 - j) ? 1 : 0) + (getBit(dataB, 7 - j) ? 2 : 0);
 		VRamTileSet[tileNum][rowNum][j] = tmpColor;
@@ -73,18 +96,25 @@ void Storage::updataSpriteSet(doubleByte add)
 {
 	auto getBit = [](byte val, int bit)->bool {return (val >> bit) & 1; };
 	auto spriteNum = (add - 0xFE00) / 4;
-	doubleByte headAdd = 0xFE00 + 4 * spriteNum;
+	auto byteNum = (add - 0xFE00) % 4;
 	SpriteSet[spriteNum].enable = true;
-	SpriteSet[spriteNum].posY = readByte(headAdd) - 0x10;
-	SpriteSet[spriteNum].posX = readByte(headAdd + 1) - 0x08;
-	SpriteSet[spriteNum].dataIndex = readByte(headAdd + 2);
-	SpriteSet[spriteNum].underBG = getBit(readByte(headAdd + 3), 7);
-	SpriteSet[spriteNum].flipY = getBit(readByte(headAdd + 3), 6);
-	SpriteSet[spriteNum].flipX = getBit(readByte(headAdd + 3), 5);
-	SpriteSet[spriteNum].palette = getBit(readByte(headAdd + 3), 4);
+	switch(byteNum) {
+	case 0:
+		SpriteSet[spriteNum].posY = storage[add] - 0x10; break;
+	case 1:
+		SpriteSet[spriteNum].posX = storage[add] - 0x08; break;
+	case 2:
+		SpriteSet[spriteNum].dataIndex = storage[add]; break;
+	case 3:
+		SpriteSet[spriteNum].underBG = getBit(readByte(add), 7);
+		SpriteSet[spriteNum].flipY = getBit(readByte(add), 6);
+		SpriteSet[spriteNum].flipX = getBit(readByte(add), 5);
+		SpriteSet[spriteNum].palette = getBit(readByte(add), 4);
+	}
 }
 
 void Storage::writeKey(byte r1keys,byte r2keys) {
 	keys[0] = (~r1keys);
 	keys[1] = (~r2keys);
+	storage[0xFF0F] |= 0x10;
 }
