@@ -7,13 +7,20 @@ class SimThread:public QThread
 {
 	Q_OBJECT
 public:
-	GPU simGPU;
-	~SimThread();
-	void run();
-	Storage & getSto() { return simSto; }
-public slots:
-	void restart();
-private:
+	//simulation hardwares
 	Storage simSto;
+	CPU simCPU;
+	GPU simGPU;
+
+	//prevent terminate thread
+	~SimThread();
+
+	//main simulation cycle
+	void run();
+
+public slots:
+	//slot for restart after close a rom
+	void restart();
+
 };
 

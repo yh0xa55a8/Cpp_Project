@@ -13,20 +13,17 @@ mainWindow::mainWindow(QWidget *parent)
 	this->freshImage(image);
 	ui.label->grabKeyboard();
 }
-//窗口构造,同时将用于显示图像的ui.label设为全黑
 
 void mainWindow::freshImage(const QImage image) {
 	ui.label->setPixmap(QPixmap::fromImage(image));
 }
-//使用Qimage为参数更新窗口中的图像
 
 void mainWindow::openFile() {
-	auto tmpPath = QFileDialog::getOpenFileName(this, tr("open file"), "/", tr("GB ROM file(*.gb)"));
+	auto tmpPath = QFileDialog::getOpenFileName(this, tr("open file"), "", tr("GB ROM file(*.gb)"));
 	if (tmpPath != "") {
 		emit fileOpened(tmpPath);
-	}//避免用户点击取消后报错
+	}//avoid error when fileDialog window is closed directly
 }
-//调用框架自带的QFileDialog选取文件同时发送fileOpend信号
 
 void mainWindow::closeRom() {
 	QImage image{ 160, 144, QImage::Format_RGB16 };
@@ -52,4 +49,3 @@ void mainWindow::keyReleaseEvent(QKeyEvent *k)
 	r2 = (((((keyStatus[Qt::Key_Down] << 1) + keyStatus[Qt::Key_Up]) << 1) + keyStatus[Qt::Key_Left]) << 1) + keyStatus[Qt::Key_Right];
 	emit keys(r1, r2);
 }
-//处理键盘按下/释放事件

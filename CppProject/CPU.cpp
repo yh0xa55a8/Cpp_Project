@@ -11,12 +11,41 @@ void CPU::init(Storage &_sto)
 }
 
 int CPU::step() {
-	byte interruptStatus = readByte_(0xFFFF)&readByte_(0xFF0F);
-	if (interruptStatus&&interruptEnabled) {
+	byte IE = readByte_(interruptSwitchAdd);
+	byte IF = readByte_(interruptFlagAdd);
+	byte IStatus = IE & IF;
+	//for interrupt proocess
+	if (IStatus&&interruptEnabled) {
 		if (haltFlag) {
 			haltFlag = false;
 		}
-		//处理中断
+		auto processInterrupt = [&](interruptType intr) {
+			interruptEnabled = false;
+			regSP -= 2;
+			writeDouble_(regSP, regPC);
+			regPC = static_cast<doubleByte>(intr);
+		};
+		for (int i = 4; i >= 0; i--) {
+			if (getBit(i, IStatus)) {
+				setBit(i, IF, false);
+				writeByte_(interruptFlagAdd, IF);
+				interruptType type;
+				switch (i) {
+				case 4:
+					type = keyPad; break;
+				case 3:
+					type = serialTrans; break;
+				case 2:
+					type = timerOverflow; break;
+				case 1:
+					type = LCDCStatus; break;
+				case 0:
+					type = Vblank; break;
+				}
+				processInterrupt(type);
+				deltaTime = 12;
+			}
+		}
 	}
 	else {
 		if (haltFlag) {
@@ -25,6 +54,10 @@ int CPU::step() {
 		else {
 			deltaTime = opcode[readByte_(regPC++)]();
 		}
+	}
+	if (interruptSwitched) {
+		interruptEnabled = !interruptEnabled;
+		interruptSwitched = false;
 	}
 	return deltaTime;
 }
@@ -42,7 +75,7 @@ void CPU::loadOpcode()
 	opcode[0x36] = [&]()->int {writeByte_(doubleReg(H, L), readByte_(regPC++)); return 12; };
 
 	//LD r1,r2
-	//不需要实现装载到自身的指令
+	//load to self are omitted
 	opcode[0x40] = [&]()->int {return 4; };
 	opcode[0x41] = [&]()->int {byteRegs[B] = byteRegs[C]; return 4; };
 	opcode[0x42] = [&]()->int {byteRegs[B] = byteRegs[D]; return 4; };
@@ -361,8 +394,8 @@ void CPU::loadOpcode()
 	opcode[0x10] = [&]()->int {regPC++; haltFlag = true; return 4; };
 
 	//DI and EI
-	opcode[0xF3] = [&]()->int {interruptSwitched = true; return 4; };
-	opcode[0xFB] = [&]()->int {interruptSwitched = true; return 4; };
+	opcode[0xF3] = [&]()->int {if(interruptEnabled)interruptSwitched = true; return 4; };
+	opcode[0xFB] = [&]()->int {if (!interruptEnabled)interruptSwitched = true; return 4; };
 
 	//scrolls and shifts
 	//RLCA
