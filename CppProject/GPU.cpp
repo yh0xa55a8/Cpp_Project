@@ -6,14 +6,16 @@ void GPU::init(Storage& _sto)
 	TileSet = &(_sto.VRamTileSet);
 	SpriteSet = &(_sto.SpriteSet);
 	imageBuffer.fill(Qt::white);
-
 }
 
 void GPU::freshLine()
 {
 	auto getBit = [](byte val, int bit)->bool {return (val >> bit) & 1; };
-	enum color { black = 0, dark = 1, light = 2, white = 3 };
-	auto setPalette = [getBit](byte PLT)->std::array<color, 4>{
+	enum color { black = 3, dark = 2, light = 1, white = 0 };
+
+	//for set particular palette from storage data
+	auto setPalette = [getBit](byte PLT)->std::array<color, 4>
+	{
 		std::array<color, 4> re;
 		for (int i = 0; i < 4; i++) {
 			bool bitA = getBit(PLT, 2 * i);
@@ -22,19 +24,22 @@ void GPU::freshLine()
 		}
 		return re;
 	};
-	auto toRGB = [](color n)->const QColor {
+	//convert grayscale color to RGB
+	auto toRGB = [](color n)->const QColor 
+	{
 		switch (n) {
-		case black:
-			return QColor(255, 255, 255);
-		case dark:
-			return QColor(192, 192, 192);
-		case light:
-			return QColor(96, 96, 96);
 		case white:
+			return QColor(255, 255, 255);
+		case light:
+			return QColor(192, 192, 192);
+		case dark:
+			return QColor(96, 96, 96);
+		case black:
 			return QColor(0, 0, 0);
 		}
 		return QColor(0, 0, 0);
 	};
+
 	byte LCDC = readByte_(addLCDC);
 	byte LY = readByte_(addLY);
 	byte SCX = readByte_(addSCX);
@@ -48,6 +53,7 @@ void GPU::freshLine()
 	bool bgMapLoc = getBit(LCDC, 3);
 	bool bgSetLoc = getBit(LCDC, 4);
 	for (LX = 0; LX < 160; LX++) {
+		//background render
 		if (getBit(LCDC, 0)) {
 			inBgX = SCX + LX;
 			inBgY = SCY + LY;
@@ -61,13 +67,38 @@ void GPU::freshLine()
 			tileInSet += bgSetLoc ? 0 : 256;
 			int tmpColor = TileSet->at(tileInSet)[inTileY][inTileX];
 			imageBuffer.setPixelColor(LX, LY, toRGB(palette[tmpColor]));
-			//渲染窗口
 		}
+		//sprite render
 		if (getBit(LCDC, 1)) {
-			//渲染精灵
-			if (getBit(LCDC, 2)) {//false for 8*8,true for 8*16
-
+			auto putSprite = [&](Sprite& tmp,int tmpColor) {
+				if (!tmp.underBG) {
+				if (tmpColor != 0) {
+					imageBuffer.setPixelColor(LX, LY, toRGB(spritePalette[tmp.palette][tmpColor]));
+				}
 			}
+				else {
+					if (imageBuffer.pixelColor(LX, static_cast<int>(LY)) == Qt::white) {
+						imageBuffer.setPixelColor(LX, LY, toRGB(spritePalette[tmp.palette][tmpColor]));
+					}
+				}
+			};
+			if (getBit(LCDC, 2)) {																			//false for 8*8,true for 8*16
+				for (int i = 0; i < 40; i += 2) {
+					if (SpriteSet->at(i).enable) {
+						Sprite& tmp = SpriteSet->at(i);
+						if (LY >= tmp.posY&&LY < tmp.posY + 16 && LX >= tmp.posX&&LX < tmp.posX + 8) {
+							inTileX = LX - tmp.posX;
+							inTileY = LY - tmp.posY;
+							byte tileIndex = (inTileY >= 8 ^ tmp.flipY) ? (tmp.dataIndex % 2 == 0 ? tmp.dataIndex : tmp.dataIndex + 1) : (tmp.dataIndex % 2 == 1 ? tmp.dataIndex : tmp.dataIndex - 1);
+							inTileY = inTileY >= 8 ? inTileY - 8 : inTileY;
+							int tmpColor = TileSet->at(tileIndex)[tmp.flipY ? 7 - inTileY : inTileY][tmp.flipX ? 7 - inTileX : inTileX];
+							if (tmpColor != 0) {
+								putSprite(tmp, tmpColor);
+							}
+						}
+					}
+				}
+			}//8*16部分可能有未展示出的问题
 			else {
 				for (int i = 0; i < 40; i++) {
 					if (SpriteSet->at(i).enable) {
@@ -76,15 +107,8 @@ void GPU::freshLine()
 							inTileX = LX - tmp.posX;
 							inTileY = LY - tmp.posY;
 							int tmpColor = TileSet->at(tmp.dataIndex)[tmp.flipY ? 7 - inTileY : inTileY][tmp.flipX ? 7 - inTileX : inTileX];
-							if (!tmp.underBG) {
-								if (tmpColor != 0) {
-									imageBuffer.setPixelColor(LX, LY, toRGB(spritePalette[tmp.palette][tmpColor]));
-								}
-							}
-							else {
-								if (imageBuffer.pixelColor(LX, static_cast<int>(LY)) == Qt::white) {
-									imageBuffer.setPixelColor(LX, LY, toRGB(spritePalette[tmp.palette][tmpColor]));
-								}
+							if (tmpColor != 0) {
+								putSprite(tmp, tmpColor);
 							}
 						}
 					}
@@ -117,13 +141,12 @@ void GPU::step(int deltaTime)
 			GPUclock -=204;
 			byte line = readByte_(addLY);
 			if (line > 143) {
+				writeByte_(0xFF0F, readByte_(0xFF0F) | 1);
 				mode = Vb;
 				if (!(readByte_(addLCDC) & 0x80)) {
 					imageBuffer.fill(Qt::white);
 				}
 				emit freshImage(imageBuffer);
-				//imageBuffer.save("debug.png");
-
 				imageBuffer.fill(Qt::white);
 			}
 			else {
@@ -142,5 +165,20 @@ void GPU::step(int deltaTime)
 			}
 		}
 	}
+	byte STAT = 0, LY = readByte_(addLY),LYC=readByte_(addSTAT);
+	if (LY == LYC) {
+		STAT |= 0b01000100;
+	}
+	switch (mode) {
+	case OAM:
+		STAT |= 0b00100010; break;
+	case Hb:
+		STAT |= 0b00001000; break;
+	case Vb:
+		STAT |= 0b00010001; break;
+	case VRAM:
+		STAT |= 0b00000011; break;
+	}
+	writeByte_(addSTAT, STAT);
 }
 
